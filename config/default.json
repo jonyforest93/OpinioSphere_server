@@ -1,0 +1,6 @@
+{
+  "accessSecret": "super secret",
+  "mongoUri": "mongodb+srv://ystruneuski:qwerty12345@opiniospheredb.8nnpnv4.mongodb.net/app?retryWrites=true&w=majority",
+  "port": 8080,
+  "refreshSecret": "super refresh secret"
+}
