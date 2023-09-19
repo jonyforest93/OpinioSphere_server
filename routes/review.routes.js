@@ -19,7 +19,7 @@ router.post('/create', auth,async (req, res) => {
 
         const filename = Guid.newGuid().toString() + req.body.filename;
         const image = req.body.image.slice(req.body.image.indexOf(',') + 1);
-        const buffer = Uint8Array.from(atob(image), c => c.charCodeAt(0))
+        const buffer = Uint8Array.from(Buffer.from(image, 'base64'))
 
         const storageRef = ref(firebaseStorage, filename);
         uploadBytes(storageRef, buffer, { contentType: 'image/jpg'}).then(async (snapshot) => {
