@@ -163,7 +163,7 @@ router.get('/id/:id', async (req, res) => {
             userMark: userMark,
             rateSum: review.rateSum,
             rateCount: review.rateCount,
-            craetedDate: review.createdAt,
+            createdDate: review.createdAt,
         }
 
         res.status(200).json({review: resultReview, author: user });
@@ -175,7 +175,7 @@ router.get('/id/:id', async (req, res) => {
     }
 })
 
-router.patch('/edit/:id', auth, async (req, res) => {
+router.patch('/id/:id', auth, async (req, res) => {
     try {
         const reviewId = req.params.id;
         const updates = req.body;
@@ -183,7 +183,7 @@ router.patch('/edit/:id', auth, async (req, res) => {
         res.status(201).json(updatedReview)
     } catch (e) {
         res.status(500).json({
-            message: 'На сервере произошла ошибка 4'
+            message: e.message
         })
     }
 })
@@ -230,6 +230,7 @@ router.patch('/:id/setMark', auth, async(req, res) => {
         const {mark, reviewId} = req.body;
 
         const userId = req.user._id;
+
         const review = await Review.findOne({_id: reviewId});
 
         const existingMark = await Mark.findOne({userId: userId, reviewId: reviewId});
