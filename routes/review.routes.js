@@ -42,7 +42,7 @@ router.post('/create', auth,async (req, res) => {
 
 router.post('/all', async (req, res) => {
     try {
-        const {category, sort} = req.body;
+        const {category, sort, page, limit} = req.body;
 
         const sortObject = {};
         sortObject[sort] = -1;
@@ -63,7 +63,13 @@ router.post('/all', async (req, res) => {
                 $addFields: {
                     authorName: '$authorInfo.name',
                     authorLikeSum: '$authorInfo.likesSum',
-                    rateAverage: { $divide: ["$review.rateSum", "$review.rateCount"] },
+                    rateAverage: {
+                        $cond: {
+                            if: { $gt: ['$rateCount', 0] },
+                            then: { $divide: ['$rateSum', '$rateCount'] },
+                            else: 0,
+                        },
+                    },
                 }
             },
             {
@@ -77,7 +83,7 @@ router.post('/all', async (req, res) => {
             });
         }
 
-        const reviews = await Review.aggregate(aggregationPipeline);
+        const reviews = await Review.aggregate(aggregationPipeline).skip(page * limit).limit(limit);
 
         res.status(200).json(reviews);
     } catch (e) {
@@ -90,6 +96,7 @@ router.post('/all', async (req, res) => {
 router.get('/user/:id', auth, async (req, res) => {
     try {
         const userId = new mongoose.Types.ObjectId(req.params.id);
+        const user = await User.findOne( {_id: userId} );
 
         const aggregationPipeline = [
             {
@@ -106,14 +113,23 @@ router.get('/user/:id', auth, async (req, res) => {
             {
                 $addFields: {
                     authorName: '$authorInfo.name',
+                    likesCount: { $size: '$likes' },
+                    averageRate: {
+                        $cond: {
+                            if: { $gt: ['$rateCount', 0] },
+                            then: { $divide: ['$rateSum', '$rateCount'] },
+                            else: 0,
+                        },
+                    },
                 },
-            },
-            {
-                $match: {
-                    authorId: userId
-                }
             }
         ]
+
+        if (user.role !== "Admin") {
+            aggregationPipeline.unshift({
+                $match: {  authorId: userId },
+            });
+        }
 
         const reviews = await Review.aggregate(aggregationPipeline)
 
@@ -123,7 +139,6 @@ router.get('/user/:id', auth, async (req, res) => {
             message: e.message
         })
     }
-
 })
 
 router.get('/id/:id', async (req, res) => {
@@ -268,8 +283,6 @@ router.post('/search', async(req, res) => {
 router.post('/tags', async(req, res) => {
     try {
         const {text} = req.body;
-        console.log(text)
-
         const tags = await Tag.find({ tag: { $regex: new RegExp(text, 'i') } }).limit(5);
 
         res.status(201).json(tags);

@@ -34,7 +34,7 @@ router.get('/review/:id', async (req, res) => {
     try {
         const reviewId = req.params.id;
 
-        const comments = await Comment.find({reviewId: reviewId}).limit(4);
+        const comments = await Comment.find({reviewId: reviewId})
 
         res.status(200).json(comments);
     } catch (e) {

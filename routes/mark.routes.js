@@ -6,11 +6,6 @@ const auth = require('../middleware/auth.middleware');
 
 router.get('/:id/getMark', auth, async(req, res) => {
     try {
-        const reviewId = req.params.id;
-        const userId = req.user._id;
-
-        const existingMark = await Mark.findOne({userId: userId, reviewId: reviewId});
-
 
     } catch (e) {
         res.status(500).json({
