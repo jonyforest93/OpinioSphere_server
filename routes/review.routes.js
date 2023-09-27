@@ -272,7 +272,18 @@ router.patch('/:id/setMark', auth, async(req, res) => {
 
 router.post('/search', async(req, res) => {
     try {
+        const { text } = req.body;
 
+        const findingReview = await Review.find({
+            $or: [
+                { name: { $regex: new RegExp(text, 'i') } },
+                { subject: { $regex: new RegExp(text, 'i') } },
+                { description: { $regex: new RegExp(text, 'i') } },
+                { tags: { $in: [text] } }
+            ]
+        }).limit(6);
+
+        res.status(200).json(findingReview);
     } catch (e) {
         res.status(500).json({
             message: 'На сервере произошла ошибка'
